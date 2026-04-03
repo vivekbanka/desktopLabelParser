@@ -19,7 +19,7 @@ namespace labelParser
 {
     public partial class MainWindow : Window
     {
-        private const string TemplatePath = @"C:\Users\banka\source\repos\desktopLabelParser\labelParser\tube_label.lbx";
+        private static readonly string TemplatePath = Path.Combine(AppContext.BaseDirectory, "tube_label.lbx");
 
         public class AamvaLicense
         {
@@ -127,58 +127,37 @@ namespace labelParser
             var pd = new PrintDocument();
             pd.PrinterSettings.PrinterName = "Brother QL-710W";
 
+            // Swap dimensions: 60mm wide x 29mm tall (landscape/rotated)
+            pd.DefaultPageSettings.PaperSize = new PaperSize("Custom", 236, 114);
+            pd.DefaultPageSettings.Margins = new System.Drawing.Printing.Margins(0, 0, 0, 0);
+            pd.DefaultPageSettings.Landscape = true;
+
             pd.PrintPage += (sender, e) =>
             {
                 var g = e.Graphics!;
+                g.PageUnit = System.Drawing.GraphicsUnit.Millimeter;
                 g.Clear(SysColor.White);
 
-                int margin    = 10;
-                int y         = 15;
-                int pageWidth = (int)e.PageBounds.Width;
-                int drawWidth = pageWidth - margin * 2;
+                // Rotate 90 degrees so text prints vertically along the tube
+                g.TranslateTransform(0, 29f);
+                g.RotateTransform(-90f);
 
-                // Patient name
-                using var nameFont = new SysFont("Arial", 14f, SysFontStyle.Bold);
-                g.DrawString(
-                    $"{license.FirstName} {license.LastName}",
-                    nameFont, SysBrushes.Black,
-                    new SysRectF(margin, y, drawWidth, 50));
-                y += 48;
+                // Now drawing as if on 29mm wide x 60mm tall canvas
+                float mL = 1.5f;
+                float mR = 1.5f;
+                float y = 2f;
+                float w = 60f - mL - mR; // full length of tube is now our width
 
-                // Divider
-                g.DrawLine(SysPens.Black, margin, y, pageWidth - margin, y);
-                y += 8;
+                string line = $"{license.FirstName} {license.LastName}  /  {license.DateOfBirthFormatted ?? "N/A"}";
 
-                using var lblFont = new SysFont("Arial", 7f);
-                using var valFont = new SysFont("Arial", 10f, SysFontStyle.Bold);
+                using var font = new SysFont("Arial", 3.8f, SysFontStyle.Bold);
+                g.DrawString(line, font, SysBrushes.Black, new SysRectF(mL, y, w, 8f));
 
-                // DOB
-                g.DrawString("DATE OF BIRTH", lblFont, SysBrushes.Gray,
-                    new SysRectF(margin, y, drawWidth, 16));
-                y += 15;
-                g.DrawString(
-                    license.DateOfBirthFormatted ?? "N/A",
-                    valFont, SysBrushes.Black,
-                    new SysRectF(margin, y, drawWidth, 24));
-                y += 26;
-
-                // Divider
-                g.DrawLine(SysPens.Black, margin, y, pageWidth - margin, y);
-                y += 8;
-
-                // Printed datetime
-                g.DrawString("PRINTED", lblFont, SysBrushes.Gray,
-                    new SysRectF(margin, y, drawWidth, 16));
-                y += 15;
-                g.DrawString(
-                    DateTime.Now.ToString("dd-MMM-yyyy HH:mm").ToUpper(),
-                    valFont, SysBrushes.Black,
-                    new SysRectF(margin, y, drawWidth, 24));
+                e.HasMorePages = false;
             };
 
             pd.Print();
         }
-
         private void ScanBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             var data = ScanBox.Text;
