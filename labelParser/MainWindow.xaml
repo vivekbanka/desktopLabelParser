@@ -5,8 +5,27 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:labelParser"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="DL Scanner" Height="300" Width="400">
+    <StackPanel Margin="20">
 
-    </Grid>
+        <TextBlock Text="Scan Driver License" FontSize="16" Margin="0,0,0,10"/>
+
+        <!-- Hidden input for scanner -->
+        <TextBox Name="ScanBox"
+                 Height="30"
+                 Margin="0,5"
+                 FontSize="14"
+                 TextChanged="ScanBox_TextChanged"/>
+
+        <TextBlock Text="Name:" FontWeight="Bold"/>
+        <TextBlock Name="NameText" FontSize="18" Margin="0,5"/>
+
+        <TextBlock Text="D.O.B:" FontWeight="Bold"/>
+        <TextBlock Name="DOBText" FontSize="18" Margin="0,5"/>
+        <TextBlock Text="Age:" FontWeight="Bold"/>
+        <TextBlock Name="AgeText" FontSize="18" Margin="0,5"/>
+
+        <TextBlock Name="StatusText" Foreground="Green" Margin="0,10"/>
+
+    </StackPanel>
 </Window>
